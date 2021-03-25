@@ -1,0 +1,117 @@
+jenkins:
+  systemMessage: "\n\nTEST CASC CLOUD SETUP......\n\n"
+  clouds:
+    - kubernetes:
+        connectTimeout: 300
+        containerCap: 10
+        containerCapStr: "10"
+        jenkinsTunnel: "jenkins:50000"
+        jenkinsUrl: "http://jenkins"
+        name: "kubernetes"
+        namespace: "jenkins"
+        serverUrl: "https://kubernetes.default:443"
+        templates:
+        - containers:
+          - image: "aimvector/jenkins-slave"
+            livenessProbe:
+              failureThreshold: 0
+              initialDelaySeconds: 0
+              periodSeconds: 0
+              successThreshold: 0
+              timeoutSeconds: 0
+            name: "jnlp"
+            ttyEnabled: true
+            workingDir: "/home/jenkins/agent"
+          id: "87585df7-cc72-43d7-a16a-637448b4a190"
+          label: "jenkins-slave"
+          name: "jenkins-slave"
+          namespace: "jenkins"
+          runAsGroup: "129"
+          runAsUser: "0"
+          serviceAccount: "jenkins"
+          volumes:
+          - hostPathVolume:
+              hostPath: "/var/run/docker.sock"
+              mountPath: "/var/run/docker.sock"
+          workspaceVolume:
+            hostPathWorkspaceVolume:
+              hostPath: "/home/jenkins/agent/"
+          yamlMergeStrategy: "override"
+        - containers:
+          - image: "mcr.microsoft.com/dotnet/core/sdk"
+            livenessProbe:
+              failureThreshold: 0
+              initialDelaySeconds: 0
+              periodSeconds: 0
+              successThreshold: 0
+              timeoutSeconds: 0
+            name: "dotnet"
+            ttyEnabled: true
+            workingDir: "/home/jenkins/agent"
+          id: "4e0c454b-d674-4afa-b8b1-ec5c4371959c"
+          inheritFrom: "jenkins-slave"
+          label: "dotnet"
+          name: "dotnet"
+          namespace: "jenkins"
+          workspaceVolume:
+            hostPathWorkspaceVolume:
+              hostPath: "/home/jenkins/agent/"
+          yamlMergeStrategy: "override"  
+        - containers:
+          - image: "ubuntu"
+            livenessProbe:
+              failureThreshold: 0
+              initialDelaySeconds: 0
+              periodSeconds: 0
+              successThreshold: 0
+              timeoutSeconds: 0
+            name: "ubuntu"
+            ttyEnabled: true
+            workingDir: "/home/jenkins/agent"
+          id: "9e04a071-c96b-4911-ab94-c49c48f9afa4"
+          inheritFrom: "dotnet"
+          label: "ubuntu"
+          name: "ubuntu"
+          namespace: "jenkins"
+          workspaceVolume:
+            hostPathWorkspaceVolume:
+              hostPath: "/home/jenkins/agent/"
+          yamlMergeStrategy: "override"
+        - containers:
+          - image: "python"
+            livenessProbe:
+              failureThreshold: 0
+              initialDelaySeconds: 0
+              periodSeconds: 0
+              successThreshold: 0
+              timeoutSeconds: 0
+            name: "python"
+            ttyEnabled: true
+            workingDir: "/home/jenkins/agent"
+          id: "e0859968-a12d-417b-9fa4-00e577b8bf7c"
+          inheritFrom: "ubuntu"
+          label: "python"
+          name: "python"
+          namespace: "jenkins"
+          yamlMergeStrategy: "override"
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+       - id: "admin" 
+         password: "password" 
+  authorizationStrategy:
+    globalMatrix:
+      permissions:
+        - "Overall/Administer:admin"
+        - "Overall/Read:authenticated"
+  remotingSecurity:
+    enabled: true
+security:
+  queueItemAuthenticator:
+    authenticators:
+    - global:
+        strategy: triggeringUsersAuthorizationStrategy
+unclassified:
+  location:
+    url: http://127.0.0.1:8080/
